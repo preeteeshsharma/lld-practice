@@ -4,13 +4,20 @@ import com.example.musicplayer.model.Playlist;
 import com.example.musicplayer.model.RepeatMode;
 import com.example.musicplayer.model.Track;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MusicPlayer {
     private final Playlist playlist;
     private PlayerState state;
     private int currentIndex;
     private RepeatMode repeatMode;
+    private final List<PlaybackListener> listeners = new ArrayList<>();
 
     public MusicPlayer(Playlist playlist) {
+        if (playlist == null || playlist.size() == 0) {
+            throw new IllegalArgumentException("Playlist must be non-empty");
+        }
         this.playlist = playlist;
         this.state = StoppedState.INSTANCE;
         this.currentIndex = 0;
@@ -40,6 +47,11 @@ public class MusicPlayer {
 
     public void setRepeatMode(RepeatMode repeatMode) {
         this.repeatMode = repeatMode;
+    }
+
+    // Observer pattern — register a listener to receive playback events.
+    public void addListener(PlaybackListener listener) {
+        listeners.add(listener);
     }
 
     // package-private — only state classes within this package should drive transitions
@@ -87,14 +99,19 @@ public class MusicPlayer {
         };
     }
 
+    // Event emission — domain stays pure, I/O is the listener's responsibility.
     // package-private — called only by state classes
-    void startPlayback() {
+    void notifyTrackStarted() {
         Track track = playlist.trackAt(currentIndex);
-        System.out.printf("Now playing: %s%n", track.title());
+        for (PlaybackListener l : listeners) l.onTrackStarted(track);
     }
 
-    // package-private — called only by state classes
-    void stopPlayback() {
-        System.out.println("Playback stopped");
+    void notifyTrackPaused() {
+        Track track = playlist.trackAt(currentIndex);
+        for (PlaybackListener l : listeners) l.onTrackPaused(track);
+    }
+
+    void notifyPlaybackStopped() {
+        for (PlaybackListener l : listeners) l.onPlaybackStopped();
     }
 }

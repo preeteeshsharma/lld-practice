@@ -9,26 +9,26 @@ public class StoppedState implements PlayerState {
     @Override
     public void play(MusicPlayer player) {
         player.setState(PlayingState.INSTANCE);
-        player.startPlayback();
+        player.notifyTrackStarted();
     }
 
     @Override
     public void pause(MusicPlayer player) {
-        throw new IllegalStateException("Invalid state");
+        throw new IllegalStateException("Cannot pause: player is stopped");
     }
 
     @Override
     public void stop(MusicPlayer player) {
-        // no-op
+        // no-op — already stopped
     }
 
     @Override
     public void next(MusicPlayer player) {
-        throw new IllegalStateException("Invalid state");
+        throw new IllegalStateException("Cannot navigate: player is stopped");
     }
 
     @Override
     public void prev(MusicPlayer player) {
-        throw new IllegalStateException("Invalid state");
+        throw new IllegalStateException("Cannot navigate: player is stopped");
     }
 }

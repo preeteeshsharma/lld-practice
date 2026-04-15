@@ -9,7 +9,7 @@ public class PausedState implements PlayerState {
     @Override
     public void play(MusicPlayer player) {
         player.setState(PlayingState.INSTANCE);
-        player.startPlayback();
+        player.notifyTrackStarted();
     }
 
     @Override
@@ -19,6 +19,7 @@ public class PausedState implements PlayerState {
 
     @Override
     public void stop(MusicPlayer player) {
+        player.notifyPlaybackStopped();
         player.setState(StoppedState.INSTANCE);
     }
 
