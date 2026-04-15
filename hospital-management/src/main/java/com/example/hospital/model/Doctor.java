@@ -1,7 +1,8 @@
 package com.example.hospital.model;
 
-public record Doctor(DoctorId id, String name) {
+public record Doctor(String id, String name) {
     public Doctor {
-        if (name == null || name.isBlank()) throw new IllegalArgumentException("Doctor name cannot be blank");
+        if (id == null || id.isBlank()) throw new IllegalArgumentException("id required");
+        if (name == null || name.isBlank()) throw new IllegalArgumentException("name required");
     }
 }

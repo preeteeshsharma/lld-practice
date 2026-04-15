@@ -1,47 +1,26 @@
 package com.example.hospital.service;
 
+import com.example.hospital.model.Consultation;
 import com.example.hospital.model.Doctor;
-import com.example.hospital.model.Patient;
 
-public class DoctorSession {
+public final class DoctorSession {
     private final Doctor doctor;
     private DoctorState state;
-    private Patient currentPatient;
+    private Consultation currentConsultation;
 
     public DoctorSession(Doctor doctor) {
         this.doctor = doctor;
         this.state = AvailableState.INSTANCE;
     }
 
-    // package-private — only state classes within this package should drive transitions
-    void setState(DoctorState state) {
-        this.state = state;
-    }
+    void setState(DoctorState state) { this.state = state; }
+    void assignConsultation(Consultation c) { this.currentConsultation = c; }
+    void clearConsultation() { this.currentConsultation = null; }
 
-    // package-private — called only by state classes
-    void assignPatient(Patient patient) {
-        this.currentPatient = patient;
-    }
+    public Doctor getDoctor() { return doctor; }
+    public Consultation getCurrentConsultation() { return currentConsultation; }
+    public boolean isAvailable() { return state instanceof AvailableState; }
 
-    // package-private — called only by state classes
-    void clearPatient() {
-        this.currentPatient = null;
-    }
-
-    public Patient getCurrentPatient() {
-        return currentPatient;
-    }
-
-    public Doctor getDoctor() {
-        return doctor;
-    }
-
-    // delegates to state
-    public void callNext(OPDQueue queue) {
-        state.callNext(this, queue);
-    }
-
-    public void completeConsultation() {
-        state.completeConsultation(this);
-    }
+    public void start(Consultation consultation) { state.start(this, consultation); }
+    public Consultation complete() { return state.complete(this); }
 }

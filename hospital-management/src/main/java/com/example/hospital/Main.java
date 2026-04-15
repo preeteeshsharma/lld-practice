@@ -1,52 +1,68 @@
 package com.example.hospital;
 
+import com.example.hospital.model.Consultation;
+import com.example.hospital.model.Doctor;
+import com.example.hospital.model.Patient;
 import com.example.hospital.model.Priority;
+import com.example.hospital.model.TreatmentRecord;
 import com.example.hospital.service.ConsultationService;
 import com.example.hospital.service.DoctorSession;
 import com.example.hospital.service.OPDQueue;
-import com.example.hospital.service.RegistrationService;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) {
-        // Scenario 1: EMERGENCY jumps ahead of GENERAL patients
+        OPDQueue queue = new OPDQueue();
+        ConsultationService service = new ConsultationService(queue);
+
+        // Reception-like: register patients directly (no dedicated Reception class for time)
+        queue.enqueue(new Patient(UUID.randomUUID().toString(), "Alice", Priority.GENERAL, Instant.now()));
+        queue.enqueue(new Patient(UUID.randomUUID().toString(), "Bob", Priority.GENERAL, Instant.now()));
+        queue.enqueue(new Patient(UUID.randomUUID().toString(), "Charlie", Priority.EMERGENCY, Instant.now()));
+
+        // Registry-like: create doctor + session directly
+        DoctorSession smith = new DoctorSession(new Doctor(UUID.randomUUID().toString(), "Smith"));
+        List<DoctorSession> sessions = List.of(smith);
+
+        // Scenario 1: EMERGENCY served first, then GENERAL in FIFO order
         System.out.println("=== Scenario 1: EMERGENCY before GENERAL ===");
-        OPDQueue queue1 = new OPDQueue();
-        RegistrationService reg1 = new RegistrationService(queue1);
-        ConsultationService consult1 = new ConsultationService(queue1);
+        dispatchAndClose(service, sessions, smith, "Acute pain", "Painkillers");
+        dispatchAndClose(service, sessions, smith, "Common cold", "Rest");
+        dispatchAndClose(service, sessions, smith, "Mild fever", "Paracetamol");
 
-        reg1.registerPatient("Alice", Priority.GENERAL);
-        reg1.registerPatient("Bob", Priority.GENERAL);
-        reg1.registerPatient("Charlie", Priority.EMERGENCY);  // arrives last, served first
-
-        DoctorSession drSmith = reg1.registerDoctor("Smith");
-        consult1.callNext(drSmith);       // Charlie (EMERGENCY)
-        consult1.completeConsultation(drSmith);
-        consult1.callNext(drSmith);       // Alice (GENERAL, arrived first)
-        consult1.completeConsultation(drSmith);
-        consult1.callNext(drSmith);       // Bob (GENERAL)
-        consult1.completeConsultation(drSmith);
-
-        // Scenario 2: Empty queue handled gracefully
+        // Scenario 2: empty queue
         System.out.println("\n=== Scenario 2: Empty queue ===");
-        consult1.callNext(drSmith);
+        Optional<Consultation> none = service.dispatchNext(sessions);
+        System.out.println("Dispatched: " + (none.isPresent() ? "unexpected" : "nothing — queue empty"));
 
-        // Scenario 3: Busy doctor cannot call next
+        // Scenario 3: busy doctor blocks second dispatch until complete
         System.out.println("\n=== Scenario 3: Busy doctor blocked ===");
-        OPDQueue queue2 = new OPDQueue();
-        RegistrationService reg2 = new RegistrationService(queue2);
-        ConsultationService consult2 = new ConsultationService(queue2);
+        queue.enqueue(new Patient(UUID.randomUUID().toString(), "Dave", Priority.GENERAL, Instant.now()));
+        queue.enqueue(new Patient(UUID.randomUUID().toString(), "Eve", Priority.GENERAL, Instant.now()));
 
-        reg2.registerPatient("Dave", Priority.GENERAL);
-        reg2.registerPatient("Eve", Priority.GENERAL);
+        service.dispatchNext(sessions);
+        Optional<Consultation> blocked = service.dispatchNext(sessions);
+        System.out.println("Second dispatch while busy: " + (blocked.isEmpty() ? "blocked" : "unexpected"));
 
-        DoctorSession drJones = reg2.registerDoctor("Jones");
-        consult2.callNext(drJones);  // Dave
-        try {
-            consult2.callNext(drJones);  // should throw — already busy
-        } catch (IllegalStateException e) {
-            System.out.println("Blocked: " + e.getMessage());
-        }
-        consult2.completeConsultation(drJones);
-        consult2.callNext(drJones);  // Eve
+        service.completeConsultation(smith, "Headache", "Ibuprofen");
+        Optional<Consultation> eve = service.dispatchNext(sessions);
+        System.out.println("Dispatched Eve after Smith freed: " + eve.isPresent());
+        service.completeConsultation(smith, "Sore throat", "Lozenges");
+    }
+
+    private static void dispatchAndClose(ConsultationService service,
+                                         List<DoctorSession> sessions,
+                                         DoctorSession session,
+                                         String diagnosis,
+                                         String prescription) {
+        Optional<Consultation> c = service.dispatchNext(sessions);
+        if (c.isEmpty()) { System.out.println("Nothing to dispatch"); return; }
+        System.out.println("Started: patient=" + c.get().patientId() + " doctor=" + session.getDoctor().name());
+        TreatmentRecord r = service.completeConsultation(session, diagnosis, prescription);
+        System.out.println("Closed: consultation=" + r.consultationId() + " dx=" + r.diagnosis());
     }
 }

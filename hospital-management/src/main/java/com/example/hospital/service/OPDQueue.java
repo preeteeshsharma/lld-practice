@@ -7,15 +7,19 @@ import java.util.Optional;
 import java.util.PriorityQueue;
 
 public class OPDQueue {
-    // rank() is explicit — not ordinal(), which breaks if enum order changes.
-    // FIFO tiebreak within same priority: lower arrivalSequence served first.
+    // rank() not ordinal() — safe against enum reorder.
+    // Tiebreak: earlier registeredAt first (FIFO within a priority).
     private final PriorityQueue<Patient> queue = new PriorityQueue<>(
             Comparator.comparingInt((Patient p) -> p.priority().rank())
-                      .thenComparingInt(Patient::arrivalSequence)
+                      .thenComparing(Patient::registeredAt)
     );
 
     public void enqueue(Patient patient) {
         queue.offer(patient);
+    }
+
+    public Optional<Patient> peek() {
+        return Optional.ofNullable(queue.peek());
     }
 
     public Optional<Patient> poll() {

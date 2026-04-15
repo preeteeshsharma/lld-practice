@@ -1,6 +1,8 @@
 package com.example.hospital.service;
 
-public interface DoctorState {
-    void callNext(DoctorSession session, OPDQueue queue);
-    void completeConsultation(DoctorSession session);
+import com.example.hospital.model.Consultation;
+
+public sealed interface DoctorState permits AvailableState, BusyState {
+    void start(DoctorSession session, Consultation consultation);
+    Consultation complete(DoctorSession session);
 }
