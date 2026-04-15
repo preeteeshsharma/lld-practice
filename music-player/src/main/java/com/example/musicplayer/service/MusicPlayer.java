@@ -17,6 +17,27 @@ public class MusicPlayer {
         this.repeatMode = RepeatMode.NONE;
     }
 
+    // public API — user-facing actions
+    public void play() {
+        state.play(this);
+    }
+
+    public void pause() {
+        state.pause(this);
+    }
+
+    public void stop() {
+        state.stop(this);
+    }
+
+    public void next() {
+        state.next(this);
+    }
+
+    public void prev() {
+        state.prev(this);
+    }
+
     public void setRepeatMode(RepeatMode repeatMode) {
         this.repeatMode = repeatMode;
     }
@@ -39,7 +60,9 @@ public class MusicPlayer {
                 if (currentIndex < playlist.size() - 1) {
                     currentIndex++;
                     yield true;
-                } else yield false;
+                } else {
+                    yield false;
+                }
             }
         };
     }
@@ -57,7 +80,9 @@ public class MusicPlayer {
                 if (currentIndex > 0) {
                     currentIndex--;
                     yield true;
-                } else yield false;
+                } else {
+                    yield false;
+                }
             }
         };
     }
@@ -71,26 +96,5 @@ public class MusicPlayer {
     // package-private — called only by state classes
     void stopPlayback() {
         System.out.println("Playback stopped");
-    }
-
-    // public API — user-facing actions
-    public void play() {
-        state.play(this);
-    }
-
-    public void pause() {
-        state.pause(this);
-    }
-
-    public void stop() {
-        state.stop(this);
-    }
-
-    public void next() {
-        state.next(this);
-    }
-
-    public void prev() {
-        state.prev(this);
     }
 }

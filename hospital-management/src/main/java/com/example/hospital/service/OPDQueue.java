@@ -11,7 +11,7 @@ public class OPDQueue {
     // Tiebreak: earlier registeredAt first (FIFO within a priority).
     private final PriorityQueue<Patient> queue = new PriorityQueue<>(
             Comparator.comparingInt((Patient p) -> p.priority().rank())
-                      .thenComparing(Patient::registeredAt)
+                    .thenComparing(Patient::registeredAt)
     );
 
     public void enqueue(Patient patient) {
