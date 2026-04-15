@@ -1,6 +1,6 @@
 package com.example.musicplayer.service;
 
-public class PlayingState implements PlayerState{
+public class PlayingState implements PlayerState {
     public static final PlayingState INSTANCE = new PlayingState();
 
     private PlayingState() {
@@ -8,14 +8,13 @@ public class PlayingState implements PlayerState{
 
     @Override
     public void play(MusicPlayer player) {
-        //no-op
+        // no-op
     }
 
     @Override
     public void pause(MusicPlayer player) {
         player.stopPlayback();
         player.setState(PausedState.INSTANCE);
-
     }
 
     @Override

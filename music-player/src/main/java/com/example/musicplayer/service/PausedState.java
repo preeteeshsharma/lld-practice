@@ -1,7 +1,6 @@
 package com.example.musicplayer.service;
 
 public class PausedState implements PlayerState {
-
     public static final PausedState INSTANCE = new PausedState();
 
     private PausedState() {

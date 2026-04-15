@@ -3,7 +3,7 @@ package com.example.musicplayer;
 import com.example.musicplayer.model.Playlist;
 import com.example.musicplayer.model.Track;
 import com.example.musicplayer.service.MusicPlayer;
-import com.example.musicplayer.state.RepeatMode;
+import com.example.musicplayer.model.RepeatMode;
 
 import java.util.List;
 

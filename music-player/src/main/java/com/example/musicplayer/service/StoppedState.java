@@ -19,7 +19,7 @@ public class StoppedState implements PlayerState {
 
     @Override
     public void stop(MusicPlayer player) {
-        //no-op
+        // no-op
     }
 
     @Override

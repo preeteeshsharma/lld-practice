@@ -1,4 +1,4 @@
-package com.example.musicplayer.state;
+package com.example.musicplayer.model;
 
 public enum RepeatMode {
     NONE,
